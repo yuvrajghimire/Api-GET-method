@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>UserList</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<style>
+		input[type=number] {
+			-moz-appearance: textfield;
+		}
+	</style>
+</head>
+
+
+<body>
+	<div class="container">
+		<div class="row mt-3">
+			<div class="col-md-2 col-sm-4">
+				<label for="nameid">Search By Id :</label>
+			</div>
+			<div class="col-md-2 col-sm-5">
+				<input type="number" id="nameid" min="1" max="10" placeholder="Id goes here...">
+			</div>
+			<div class="col-md-2 col-sm-2 text-center">
+				<button type="button" id="submit" class="button btn btn-sm btn-primary">Send</button>
+			</div>
+			<div class="col-md-6 col-sm-1">
+			</div>
+		</div>
+	</div>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-2 col-sm-4">
+				<label for="searchName">Search By Name :</label>
+			</div>
+			<div class="col-md-2 col-sm-5">
+				<input type="text" id="searchName" placeholder="Name...">
+			</div>
+			<div class="col-md-8 col-sm-1">
+			</div>
+		</div>
+	</div>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12 col-sm-12">
+				<h3 class="text-center">UserList</h3>
+				<table class="table table-bordered table-striped table-hover">
+					<thead class="thead-dark">
+						<th>S.N</th>
+						<th>Name</th>
+						<th>Username</th>
+						<th>Email</th>
+						<th>Address</th>
+						<th>Phone</th>
+						<th>Website</th>
+					</thead>
+					<tbody id="content">
+						<tr class="removeable">
+							<td colspan="7">Waiting for you to search here...</td>
+						</tr>
+					</tbody>
+				</table>
+				<button id="btn" class="btn btn-info">Load more</button>
+				<button id="btnall" class="btn btn-dark">List all</button>
+				<button id="btnreset" class="btn btn-warning">Reset</button>
+			</div>
+		</div>
+	</div>
+
+	<script src="js/jquery.min.js"></script>
+	<script>
+
+		//get method 
+		let dataCounter = 0;
+		let html_str = ""
+		let html_str2 = ""
+		// const selector =  document.querySelectorAll(".btn")
+		// selector.forEach((select) => {
+		// 	select.addEventListener("click",output)
+		// })
+		// $(".btn").click(output)
+
+		let output = (data) => {
+			html_str2 = ""
+			html_str2 += `<tr>
+					<td>${data.id}</td>
+					<td><a href="show_result.html/?id=${data.id}" target="_blank">${data.name}</a></td>
+					<td>${data.username}</td>
+					<td>${data.email}</td>
+					<td>${data.address.city}</td>
+					<td>${data.phone}</td>
+					<td>${data.website}</td>
+					</tr>`
+		}
+		$("#btn").click(() => {
+			$(".removeable").hide()
+			dataCounter++
+			let data = ""
+			$.get(`https://jsonplaceholder.typicode.com/users/${dataCounter}`, function (response) {
+				if (typeof (response) != "object") {
+					response = JSON.parse(response);
+				}
+				data = response
+				output(data)
+				$("#content").append(html_str2)
+			})
+		})
+
+		$("#submit").click(() => {
+			let idInput = $("#nameid").val()
+			// console.log(idInput)
+			$.get(`https://jsonplaceholder.typicode.com/users/${idInput}`, function (response) {
+				if (typeof (response) != "object") {
+					response = JSON.parse(response);
+				}
+				const data = response
+				if (idInput == "") {
+					$("#content").html(`<tr><td colspan="7">Please enter valid ID</td></tr>`)
+				} else {
+					output(data)
+					$("#content").html(html_str2)
+				}
+				$("#nameid").val('')
+
+				dataCounter = 0
+			})
+		})
+
+		$("#searchName").keyup(function () {
+			let newres
+			let searchName = $(this).val()
+			if (searchName.length >= 3) {
+				// console.log(searchName)
+			}
+			$.get(`https://jsonplaceholder.typicode.com/users/`, function (response) {
+				if (typeof (response) != "object") {
+					response = JSON.parse(response);
+				}
+
+				for (let i = 0; i < response.length; i++) {
+					if (searchName == response[i].username) {
+						response = response[i]
+						const data = response
+
+						output(data)
+						$("#content").html(html_str2)
+						$("#nameid").val('')
+						dataCounter = 0
+					} else if (searchName == "") {
+						$("#content").html(``)
+					} 
+					// else if (response[i].username.includes(searchName)) {
+
+					// 	const data = response[i]
+					// 	output(data)
+					// } 
+					else {
+						$("#content").html(`<tr><td colspan="7">No such name as "${$("#searchName").val()}"</td></tr>`)
+					}
+				}
+			})
+			$("#searchName").keyup(function (event) {
+				if (event.keyCode === 13) {
+					event.preventDefault();
+					$(this).val('')
+				}
+			});
+		})
+		$("#btnall").click(() => {
+			$("#content").html(``)
+			$.get(`https://jsonplaceholder.typicode.com/users/`, function (response) {
+				if (typeof (response) != "object") {
+					response = JSON.parse(response);
+				}
+
+				for (let j = 0; j < response.length; j++) {
+					const data = response[j]
+					output(data)
+					$("#content").append(html_str2)
+				}
+			})
+		})
+		$("#btnreset").click(() => {
+			$("#content").html(``)
+			$("input").val(``)
+			dataCounter = 0;
+		})
+	</script>
+</body>
+
+</html>
